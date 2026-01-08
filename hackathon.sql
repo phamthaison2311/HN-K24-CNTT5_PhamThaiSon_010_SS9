@@ -114,7 +114,7 @@ ORDER BY d.dept_id, e.emp_name;
 -- 13. Tính tổng số giờ làm việc cho từng dự án. Kết quả hiển thị 2 cột: project_name và Total_Hours. (5 điểm)
 
 -- 14. Thống kê số lượng nhân viên của mỗi phòng ban. Hiển thị dept_name và Employee_Count. Chỉ hiện những phòng ban có từ 2 nhân viên trở lên.(5 điểm)
-SELECT d.dept_name, COUNT(e.emp_id) AS Employee_Count
+SELECT d.dept_name, COUNT(e.emp_id) 
 FROM Department d
 JOIN Employee e ON e.dept_id = d.dept_id
 GROUP BY d.dept_id, d.dept_name
