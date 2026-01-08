@@ -4,35 +4,38 @@ USE hackathon;
 -- PHẦN 1: TẠO CSDL VÀ CÁC BẢNG:
 -- 1. Tạo bảng (15 điểm) Tạo 4 bảng Department, Employee, Project, Assignment với cấu trúc và kiểu dữ liệu hợp lý. Đảm bảo có các khóa chính (PK) và khóa ngoại (FK) để liên kết các bảng.
 CREATE TABLE Department (
-	dept_id VARCHAR(5) PRIMARY KEY,
-    dept_name VARCHAR(100) UNIQUE, 
+    dept_id VARCHAR(5) PRIMARY KEY,
+    dept_name VARCHAR(100) NOT NULL UNIQUE,
     location VARCHAR(100),
     manager_name VARCHAR(50)
 );
 
 CREATE TABLE Employee (
-	emp_id VARCHAR(5) PRIMARY KEY,
-    emp_name VARCHAR(50),
+    emp_id VARCHAR(5) PRIMARY KEY,
+    emp_name VARCHAR(50) NOT NULL,
     dob DATE,
     email VARCHAR(100) UNIQUE,
-    phone VARCHAR(15) UNIQUE,
-    dept_id VARCHAR(5)
+    phone VARCHAR(15),
+    dept_id VARCHAR(5),
+    FOREIGN KEY (dept_id) REFERENCES Department(dept_id)
 );
 
 CREATE TABLE Project (
-	project_id VARCHAR(5),
-    project_name VARCHAR(20) UNIQUE,
+    project_id VARCHAR(5) PRIMARY KEY,
+    project_name VARCHAR(50) NOT NULL UNIQUE,
     start_date DATE,
     end_date DATE,
     budget DECIMAL(10,2)
 );
 
 CREATE TABLE Assignment (
-	assignment_id INT,
-    emp_id VARCHAR(5),
-    project_id VARCHAR(5),
+    assignment_id INT PRIMARY KEY AUTO_INCREMENT,
+    emp_id VARCHAR(5) NOT NULL,
+    project_id VARCHAR(5) NOT NULL,
     role VARCHAR(20),
-    hours_worked INT
+    hours_worked INT,
+    FOREIGN KEY (emp_id) REFERENCES Employee(emp_id),
+    FOREIGN KEY (project_id) REFERENCES Project(project_id)
 );
 
 -- Chèn dữ liệu (10 điểm) Thêm dữ liệu vào 4 bảng đã tạo:
@@ -70,11 +73,17 @@ VALUES
 
 -- PHẦN 2: TRUY VẤN DỮ LIỆU CƠ BẢN
 -- 3. Cập nhật thông tin phòng ban. Hãy viết câu lệnh thay đổi địa điểm của phòng ban có dept_id = 'C001' thành "Floor 10".(5 điểm)
-UPDATE 
+UPDATE Department
+SET location = 'Floor 10'
+WHERE dept_id = 'C001';
 -- 4. Thay đổi ngân sách. Do dự án có mã P005 có độ phức tạp cao, hãy tăng budget thêm 10% đơn vị và cập nhật end_date lùi lại 1 tháng.(5 điểm)
-
+UPDATE Project
+SET budget = budget * 1.10,
+    end_date = DATE_ADD(end_date, INTERVAL 1 MONTH)
+WHERE project_id = 'P005';
 -- 5. Viết câu lệnh xóa tất cả các bản ghi trong bảng Assignment có hours_worked bằng 0 hoặc role là "Intern".(5 điểm)
-
+DELETE FROM Assignment
+WHERE hours_worked = 0 OR role = 'Intern';
 -- 6. Liệt kê danh sách nhân viên gồm các cột: emp_id, emp_name, email thuộc phòng ban có mã  'D01'. (5 điểm)
 SELECT e.emp_id, e.emp_name, e.email FROM Employee e
 WHERE dept_id = 'D01';
@@ -92,15 +101,30 @@ SELECT * FROM Project
 LIMIT 3 OFFSET 1;
 -- PHẦN 3: TRUY VẤN DỮ LIỆU NÂNG CAO
 -- 11. Hiển thị danh sách đơn hàng gồm: assignment_id, emp_name , project_name  và role. Chỉ lấy những đơn hàng có hours_worked lớn hơn 100. (5 điểm)
-
+SELECT a.assignment_id, e.emp_name, p.project_name, a.role
+FROM Assignment a
+JOIN Employee e ON e.emp_id = a.emp_id
+JOIN Project  p ON p.project_id = a.project_id
+WHERE a.hours_worked > 100;
 -- 12. Liệt kê tất cả các phòng ban trong hệ thống gồm: dept_id, dept_name và emp_name tương ứng (nếu có). Kết quả phải bao gồm cả những phòng ban chưa có nhan viên nào. (5 điểm)
-
+SELECT d.dept_id, d.dept_name, e.emp_name
+FROM Department d
+LEFT JOIN Employee e ON e.dept_id = d.dept_id
+ORDER BY d.dept_id, e.emp_name;
 -- 13. Tính tổng số giờ làm việc cho từng dự án. Kết quả hiển thị 2 cột: project_name và Total_Hours. (5 điểm)
 
 -- 14. Thống kê số lượng nhân viên của mỗi phòng ban. Hiển thị dept_name và Employee_Count. Chỉ hiện những phòng ban có từ 2 nhân viên trở lên.(5 điểm)
-
+SELECT d.dept_name, COUNT(e.emp_id) AS Employee_Count
+FROM Department d
+JOIN Employee e ON e.dept_id = d.dept_id
+GROUP BY d.dept_id, d.dept_name
+HAVING COUNT(e.emp_id) >= 2;
 -- 15. Lấy thông tin chi tiết các nhân viên (emp_name, email) đã tham gia các dự án có ngân sách cao hơn 50000.(5 điểm)
-
+SELECT DISTINCT e.emp_name, e.email
+FROM Employee e
+JOIN Assignment a ON a.emp_id = e.emp_id
+JOIN Project p ON p.project_id = a.project_id
+WHERE p.budget > 50000;
 -- 16. Hiển thị emp_name và role của những nhân viên thuộc phòng ban 'IT' và đang tham gia vào dự án 'Website Redesign'. (5 điểm)
 
 -- 17. Hiển thị thông tin tổng hợp gồm: emp_id, emp_name, dept_name, project_name và hours_worked. (5 điểm)
